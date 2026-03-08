@@ -31,6 +31,22 @@
     "memory-agent": {
       "description": "Keeps all memory systems current — logs, Drive docs, and context files. Use after significant work sessions.",
       "prompt_file": "agents/memory-agent/CLAUDE.md"
+    },
+    "security-auditor": {
+      "description": "Proactive security scanning — secrets, permissions, ports, CVEs, Docker, and scripts. Runs weekly automatically.",
+      "prompt_file": "agents/security-auditor/CLAUDE.md"
+    },
+    "n8n-builder": {
+      "description": "Designs and builds n8n automation workflows. Use when you need to automate any process or connect services.",
+      "prompt_file": "agents/n8n-builder/CLAUDE.md"
+    },
+    "architect-agent": {
+      "description": "Designs systems before they're built. Produces architecture options, stack recommendations, and phased build plans.",
+      "prompt_file": "agents/architect-agent/CLAUDE.md"
+    },
+    "test-agent": {
+      "description": "Writes unit, integration, and E2E tests. Tracks coverage and sets up CI pipelines.",
+      "prompt_file": "agents/test-agent/CLAUDE.md"
     }
   }
 }
