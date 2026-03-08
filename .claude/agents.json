@@ -1,0 +1,36 @@
+{
+  "agents": {
+    "tool-specialist": {
+      "description": "Researches, installs, and configures CLI tools and utilities. Use when you need to find or install a tool.",
+      "prompt_file": "agents/tool-specialist/CLAUDE.md"
+    },
+    "mcp-specialist": {
+      "description": "Discovers, tests, and manages MCP servers. Use when you need new MCP capabilities or to fix existing ones.",
+      "prompt_file": "agents/mcp-specialist/CLAUDE.md"
+    },
+    "skill-specialist": {
+      "description": "Manages Claude Code plugins and skills. Use when you need to add, update, or create skills.",
+      "prompt_file": "agents/skill-specialist/CLAUDE.md"
+    },
+    "debug-specialist": {
+      "description": "Systematic root-cause diagnosis for any failure. Use when something is broken and you need to find out why.",
+      "prompt_file": "agents/debug-specialist/CLAUDE.md"
+    },
+    "research-agent": {
+      "description": "Web research, ecosystem tracking, and knowledge synthesis. Use when you need current technical information.",
+      "prompt_file": "agents/research-agent/CLAUDE.md"
+    },
+    "code-reviewer": {
+      "description": "Multi-dimensional code review covering correctness, security, and quality. Use before merging or deploying code.",
+      "prompt_file": "agents/code-reviewer/CLAUDE.md"
+    },
+    "deploy-agent": {
+      "description": "Handles builds, deployments, Docker, and CI/CD. Use when you need to ship or manage running services.",
+      "prompt_file": "agents/deploy-agent/CLAUDE.md"
+    },
+    "memory-agent": {
+      "description": "Keeps all memory systems current — logs, Drive docs, and context files. Use after significant work sessions.",
+      "prompt_file": "agents/memory-agent/CLAUDE.md"
+    }
+  }
+}
