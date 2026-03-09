@@ -1,0 +1,324 @@
+{
+  "name": "CLU Master Orchestrator",
+  "nodes": [
+    {
+      "id": "wh_agent",
+      "name": "Webhook \u2014 Agent Task",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "path": "clu-agent",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "clu-agent-task"
+    },
+    {
+      "id": "build_args",
+      "name": "Build Task Args",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        0
+      ],
+      "parameters": {
+        "jsCode": "\nconst body = $input.first().json.body || $input.first().json;\n\nconst title    = (body.title || body.description || 'Task from orchestrator').substring(0, 60);\nconst desc     = body.description || body.title || 'No description';\nconst category = body.category || 'quick';\nconst agent    = body.agent || '';\nconst priority = body.priority || 3;\nconst tags     = body.tags ? 'orchestrator,n8n,' + body.tags : 'orchestrator,n8n';\nconst context  = body.context || '';\n\n// Build args array for clu-task add\nconst args = [\n  '--title', title,\n  '--desc', desc,\n  '--category', category,\n  '--priority', String(priority),\n  '--tags', tags,\n];\n\nif (agent)   args.push('--agent', agent);\nif (context) args.push('--context', context);\n\nreturn [{ json: { cmd: 'task-add', args, meta: { title, category, agent } } }];\n"
+      }
+    },
+    {
+      "id": "exec_add",
+      "name": "Queue via Executor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8312/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ cmd: $json.cmd, args: $json.args }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      }
+    },
+    {
+      "id": "resp_ok",
+      "name": "Respond \u2014 Task Queued",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        900,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, result: $json, queued_at: new Date().toISOString() }) }}"
+      }
+    },
+    {
+      "id": "wh_status",
+      "name": "Webhook \u2014 Status",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        250
+      ],
+      "parameters": {
+        "path": "clu-status",
+        "httpMethod": "GET",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "clu-status"
+    },
+    {
+      "id": "exec_stats",
+      "name": "Get Queue Stats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        300,
+        250
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8312/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "{\"cmd\":\"task-stats\"}",
+        "options": {
+          "timeout": 15000
+        }
+      }
+    },
+    {
+      "id": "resp_stats",
+      "name": "Respond \u2014 Stats",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        600,
+        250
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, stats: $json.stdout, checked_at: new Date().toISOString() }) }}"
+      }
+    },
+    {
+      "id": "wh_mac",
+      "name": "Webhook \u2014 Mac Mini Bridge",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        500
+      ],
+      "parameters": {
+        "path": "clu-mac",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "clu-mac-bridge"
+    },
+    {
+      "id": "mac_forward",
+      "name": "Forward Mac Task",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        500
+      ],
+      "parameters": {
+        "jsCode": "\n// Forward task from Mac Mini n8n to the same queue\n// Mac Mini sends: {title, description, category, agent, priority, tags, source:\"mac-mini\"}\nconst body = $input.first().json.body || $input.first().json;\nconst tags = (body.tags || '') + ',mac-mini';\nreturn [{ json: { cmd: 'task-add', args: [\n  '--title',    (body.title || 'Mac task').substring(0, 60),\n  '--desc',     body.description || body.title,\n  '--category', body.category || 'quick',\n  '--priority', String(body.priority || 3),\n  '--tags',     'orchestrator,mac-mini,' + (body.tags || ''),\n  ...(body.agent ? ['--agent', body.agent] : [])\n]}}];\n"
+      }
+    },
+    {
+      "id": "exec_mac",
+      "name": "Queue Mac Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        500
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8312/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ cmd: $json.cmd, args: $json.args }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      }
+    },
+    {
+      "id": "resp_mac",
+      "name": "Respond \u2014 Mac Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        900,
+        500
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, source: 'mac-mini', result: $json, queued_at: new Date().toISOString() }) }}"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook \u2014 Agent Task": {
+      "main": [
+        [
+          {
+            "node": "Build Task Args",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Task Args": {
+      "main": [
+        [
+          {
+            "node": "Queue via Executor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue via Executor": {
+      "main": [
+        [
+          {
+            "node": "Respond \u2014 Task Queued",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook \u2014 Status": {
+      "main": [
+        [
+          {
+            "node": "Get Queue Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Queue Stats": {
+      "main": [
+        [
+          {
+            "node": "Respond \u2014 Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook \u2014 Mac Mini Bridge": {
+      "main": [
+        [
+          {
+            "node": "Forward Mac Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forward Mac Task": {
+      "main": [
+        [
+          {
+            "node": "Queue Mac Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue Mac Task": {
+      "main": [
+        [
+          {
+            "node": "Respond \u2014 Mac Ack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "any",
+    "errorWorkflow": "",
+    "availableInMCP": false
+  },
+  "active": false,
+  "versionId": "836efe9f-bb76-4590-a816-bef63ee70b14",
+  "id": "7WwztwbB5bWIvKPc",
+  "description": null,
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "activeVersionId": null,
+  "updatedAt": "2026-03-09T09:26:39.701Z",
+  "createdAt": "2026-03-09T09:26:39.701Z",
+  "isArchived": false,
+  "versionCounter": 1,
+  "triggerCount": 0
+}
