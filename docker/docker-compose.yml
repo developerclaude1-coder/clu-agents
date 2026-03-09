@@ -1,0 +1,262 @@
+# CLU Agent Cluster + Local GUI
+# Each agent has its own named volume for memory persistence.
+# Agents run on-demand (no restart — spawned per task by clu-worker).
+# Open WebUI provides the local chat GUI on port 8543.
+#
+# Build all agents: docker compose build
+# Run Open WebUI:   docker compose up -d open-webui
+# Run agent task:   docker compose run --rm goo (task via TASK_JSON env)
+
+x-agent-base: &agent-base
+  build:
+    context: .
+    dockerfile: Dockerfile.base
+  network_mode: host
+  environment:
+    OLLAMA_HOST:        "http://100.90.97.7:11434"
+    OLLAMA_FAST_MODEL:  "llama3.1:8b"
+    OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+    OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    OLLAMA_TIMEOUT:     "240"
+  volumes:
+    - ../agents/{agent_name}/memory:/agent/memory
+    - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+services:
+
+  # ── Open WebUI — Local Chat GUI ────────────────────────────────────────────
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: clu-open-webui
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      OLLAMA_BASE_URL:       "http://100.90.97.7:11434"
+      WEBUI_PORT:            "8543"
+      PORT:                  "8543"
+      WEBUI_SECRET_KEY:      "clu-dev-secret-2026"
+      WEBUI_AUTH:            "false"
+      DEFAULT_MODELS:        "llama3.1:8b"
+      # Gemini via OpenAI-compatible endpoint
+      OPENAI_API_KEY:        "${GEMINI_API_KEY:-}"
+      OPENAI_API_BASE_URL:   "https://generativelanguage.googleapis.com/v1beta/openai"
+    volumes:
+      - /home/knowam/tools/open-webui-data:/app/backend/data
+
+  # ── Agents (on-demand, spawned per task) ──────────────────────────────────
+
+  tool-specialist:
+    <<: *agent-base
+    container_name: clu-agent-tool-specialist
+    environment:
+      AGENT_NAME: tool-specialist
+      OLLAMA_HOST:        "http://100.90.97.7:11434"
+      OLLAMA_FAST_MODEL:  "llama3.1:8b"
+      OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+      OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    volumes:
+      - ../agents/tool-specialist/CLAUDE.md:/agent/CLAUDE.md:ro
+      - agent-tool-specialist-memory:/agent/memory
+      - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+  mcp-specialist:
+    <<: *agent-base
+    container_name: clu-agent-mcp-specialist
+    environment:
+      AGENT_NAME: mcp-specialist
+      OLLAMA_HOST:        "http://100.90.97.7:11434"
+      OLLAMA_FAST_MODEL:  "llama3.1:8b"
+      OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+      OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    volumes:
+      - ../agents/mcp-specialist/CLAUDE.md:/agent/CLAUDE.md:ro
+      - agent-mcp-specialist-memory:/agent/memory
+      - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+  skill-specialist:
+    <<: *agent-base
+    container_name: clu-agent-skill-specialist
+    environment:
+      AGENT_NAME: skill-specialist
+      OLLAMA_HOST:        "http://100.90.97.7:11434"
+      OLLAMA_FAST_MODEL:  "llama3.1:8b"
+      OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+      OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    volumes:
+      - ../agents/skill-specialist/CLAUDE.md:/agent/CLAUDE.md:ro
+      - agent-skill-specialist-memory:/agent/memory
+      - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+  debug-specialist:
+    <<: *agent-base
+    container_name: clu-agent-debug-specialist
+    environment:
+      AGENT_NAME: debug-specialist
+      OLLAMA_HOST:        "http://100.90.97.7:11434"
+      OLLAMA_FAST_MODEL:  "llama3.1:8b"
+      OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+      OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    volumes:
+      - ../agents/debug-specialist/CLAUDE.md:/agent/CLAUDE.md:ro
+      - agent-debug-specialist-memory:/agent/memory
+      - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+  research-agent:
+    <<: *agent-base
+    container_name: clu-agent-research-agent
+    environment:
+      AGENT_NAME: research-agent
+      OLLAMA_HOST:        "http://100.90.97.7:11434"
+      OLLAMA_FAST_MODEL:  "llama3.1:8b"
+      OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+      OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    volumes:
+      - ../agents/research-agent/CLAUDE.md:/agent/CLAUDE.md:ro
+      - agent-research-agent-memory:/agent/memory
+      - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+  code-reviewer:
+    <<: *agent-base
+    container_name: clu-agent-code-reviewer
+    environment:
+      AGENT_NAME: code-reviewer
+      OLLAMA_HOST:        "http://100.90.97.7:11434"
+      OLLAMA_FAST_MODEL:  "llama3.1:8b"
+      OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+      OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    volumes:
+      - ../agents/code-reviewer/CLAUDE.md:/agent/CLAUDE.md:ro
+      - agent-code-reviewer-memory:/agent/memory
+      - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+  deploy-agent:
+    <<: *agent-base
+    container_name: clu-agent-deploy-agent
+    environment:
+      AGENT_NAME: deploy-agent
+      OLLAMA_HOST:        "http://100.90.97.7:11434"
+      OLLAMA_FAST_MODEL:  "llama3.1:8b"
+      OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+      OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    volumes:
+      - ../agents/deploy-agent/CLAUDE.md:/agent/CLAUDE.md:ro
+      - agent-deploy-agent-memory:/agent/memory
+      - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+  memory-agent:
+    <<: *agent-base
+    container_name: clu-agent-memory-agent
+    environment:
+      AGENT_NAME: memory-agent
+      OLLAMA_HOST:        "http://100.90.97.7:11434"
+      OLLAMA_FAST_MODEL:  "llama3.1:8b"
+      OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+      OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    volumes:
+      - ../agents/memory-agent/CLAUDE.md:/agent/CLAUDE.md:ro
+      - agent-memory-agent-memory:/agent/memory
+      - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+  architect-agent:
+    <<: *agent-base
+    container_name: clu-agent-architect-agent
+    environment:
+      AGENT_NAME: architect-agent
+      OLLAMA_HOST:        "http://100.90.97.7:11434"
+      OLLAMA_FAST_MODEL:  "llama3.1:8b"
+      OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+      OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    volumes:
+      - ../agents/architect-agent/CLAUDE.md:/agent/CLAUDE.md:ro
+      - agent-architect-agent-memory:/agent/memory
+      - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+  n8n-builder:
+    <<: *agent-base
+    container_name: clu-agent-n8n-builder
+    environment:
+      AGENT_NAME: n8n-builder
+      OLLAMA_HOST:        "http://100.90.97.7:11434"
+      OLLAMA_FAST_MODEL:  "llama3.1:8b"
+      OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+      OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    volumes:
+      - ../agents/n8n-builder/CLAUDE.md:/agent/CLAUDE.md:ro
+      - agent-n8n-builder-memory:/agent/memory
+      - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+  security-auditor:
+    <<: *agent-base
+    container_name: clu-agent-security-auditor
+    environment:
+      AGENT_NAME: security-auditor
+      OLLAMA_HOST:        "http://100.90.97.7:11434"
+      OLLAMA_FAST_MODEL:  "llama3.1:8b"
+      OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+      OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    volumes:
+      - ../agents/security-auditor/CLAUDE.md:/agent/CLAUDE.md:ro
+      - agent-security-auditor-memory:/agent/memory
+      - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+  test-agent:
+    <<: *agent-base
+    container_name: clu-agent-test-agent
+    environment:
+      AGENT_NAME: test-agent
+      OLLAMA_HOST:        "http://100.90.97.7:11434"
+      OLLAMA_FAST_MODEL:  "llama3.1:8b"
+      OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+      OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    volumes:
+      - ../agents/test-agent/CLAUDE.md:/agent/CLAUDE.md:ro
+      - agent-test-agent-memory:/agent/memory
+      - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+  goo:
+    <<: *agent-base
+    container_name: clu-agent-goo
+    environment:
+      AGENT_NAME:  goo
+      OLLAMA_HOST: "http://100.90.97.7:11434"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      GEMINI_MODEL:   "gemini-2.5-flash"
+      OLLAMA_FAST_MODEL:  "llama3.1:8b"
+      OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+      OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    volumes:
+      - ../agents/goo/CLAUDE.md:/agent/CLAUDE.md:ro
+      - agent-goo-memory:/agent/memory
+      - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+  # ── CLU — the orchestrator agent itself ───────────────────────────────────
+  clu:
+    <<: *agent-base
+    container_name: clu-agent-clu
+    environment:
+      AGENT_NAME:  clu
+      OLLAMA_HOST: "http://100.90.97.7:11434"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      OLLAMA_FAST_MODEL:  "llama3.1:8b"
+      OLLAMA_CODE_MODEL:  "qwen2.5-coder:14b"
+      OLLAMA_THINK_MODEL: "deepseek-r1:14b"
+    volumes:
+      - /home/knowam/CLAUDE.md:/agent/CLAUDE.md:ro
+      - agent-clu-memory:/agent/memory
+      - /home/knowam/tools/clu-tasks/outputs:/agent/outputs
+
+volumes:
+  agent-tool-specialist-memory:
+  agent-mcp-specialist-memory:
+  agent-skill-specialist-memory:
+  agent-debug-specialist-memory:
+  agent-research-agent-memory:
+  agent-code-reviewer-memory:
+  agent-deploy-agent-memory:
+  agent-memory-agent-memory:
+  agent-architect-agent-memory:
+  agent-n8n-builder-memory:
+  agent-security-auditor-memory:
+  agent-test-agent-memory:
+  agent-goo-memory:
+  agent-clu-memory:

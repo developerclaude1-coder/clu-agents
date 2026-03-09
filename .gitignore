@@ -1,0 +1,9 @@
+# Agent memory — persisted in Docker volumes and Google Drive, not git
+agents/*/memory/
+agents/*/memory/**
+
+# Open WebUI data
+/open-webui-data/
+
+# Local config
+*.env

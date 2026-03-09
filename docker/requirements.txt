@@ -1,0 +1,3 @@
+# CLU Agent dependencies
+# Minimal — agents use stdlib urllib for HTTP to stay lightweight
+# Add agent-specific deps in their own Dockerfile if needed

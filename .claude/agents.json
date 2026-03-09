@@ -29,11 +29,11 @@
       "prompt_file": "agents/deploy-agent/CLAUDE.md"
     },
     "memory-agent": {
-      "description": "Keeps all memory systems current — logs, Drive docs, and context files. Use after significant work sessions.",
+      "description": "Keeps all memory systems current \u2014 logs, Drive docs, and context files. Use after significant work sessions.",
       "prompt_file": "agents/memory-agent/CLAUDE.md"
     },
     "security-auditor": {
-      "description": "Proactive security scanning — secrets, permissions, ports, CVEs, Docker, and scripts. Runs weekly automatically.",
+      "description": "Proactive security scanning \u2014 secrets, permissions, ports, CVEs, Docker, and scripts. Runs weekly automatically.",
       "prompt_file": "agents/security-auditor/CLAUDE.md"
     },
     "n8n-builder": {
@@ -49,8 +49,12 @@
       "prompt_file": "agents/test-agent/CLAUDE.md"
     },
     "goo": {
-      "description": "Google Intelligence Agent — one-stop shop for Google Workspace, Gemini AI, GCP, Firebase, and all Google APIs. Use for Drive/Docs improvements, Gemini setup, Google AI research, and anything Google ecosystem. Goo stays up-to-date on Google developments daily.",
+      "description": "Google Intelligence Agent \u2014 one-stop shop for Google Workspace, Gemini AI, GCP, Firebase, and all Google APIs. Use for Drive/Docs improvements, Gemini setup, Google AI research, and anything Google ecosystem. Goo stays up-to-date on Google developments daily.",
       "prompt_file": "agents/goo/CLAUDE.md"
+    },
+    "clu": {
+      "description": "CLU \u2014 the orchestrator agent. Independent of Claude, uses local LLMs for 95% of work. Routes tasks to specialist agents. Use when you need orchestration decisions or CLU-level reasoning without Claude.",
+      "prompt_file": "agents/clu/CLAUDE.md"
     }
   }
 }
