@@ -103,11 +103,42 @@ When invoked for research or running idle updates, follow this process:
 ## API Keys & Credentials
 
 Check `~/tools/.goo-config` for:
-- `GEMINI_API_KEY` — Google AI Studio API key
-- `GOOGLE_CLOUD_PROJECT` — GCP project ID (if set up)
-- `GOOGLE_SERVICE_ACCOUNT` — path to service account JSON (if set up)
+- `GEMINI_API_KEY` — ✅ **SET** — Google AI Studio key (45 models available)
+- `GOOGLE_CLOUD_PROJECT` — not yet set (optional, for Vertex AI)
+- `GOOGLE_SERVICE_ACCOUNT` — not yet set (optional, for Vertex AI)
 
-If keys are missing, guide the user through setup (see Setup Guide below).
+## Recommended Gemini Models (as of 2026-03)
+
+| Model | Context | Best for |
+|-------|---------|----------|
+| `gemini-2.5-pro` | 1M tokens | Complex reasoning, architecture, long docs |
+| `gemini-2.5-flash` | 1M tokens | Fast general tasks, research, summaries |
+| `gemini-2.0-flash` | 1M tokens | Stable production tasks |
+| `gemini-2.0-flash-lite` | 1M tokens | Quick lookups, low latency |
+| `gemma-3-27b-it` | 131K tokens | Open-weight, privacy-sensitive tasks |
+| `gemini-embedding-001` | 2K tokens | Semantic similarity (memory search) |
+| `deep-research-pro-preview-12-2025` | 131K tokens | Deep web research |
+
+**Default for Goo tasks:** `gemini-2.5-flash` (fast + 1M context + free tier)
+
+## Calling Gemini API
+
+```python
+import urllib.request, json, os
+
+API_KEY = open(os.path.expanduser("~/tools/.goo-config")).read()
+API_KEY = next(l.split("=",1)[1].strip().strip('"') for l in API_KEY.splitlines() if "GEMINI_API_KEY" in l)
+MODEL   = "gemini-2.5-flash"
+
+def gemini(prompt, system=""):
+    url  = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={API_KEY}"
+    body = {"contents": [{"parts": [{"text": prompt}]}]}
+    if system:
+        body["system_instruction"] = {"parts": [{"text": system}]}
+    req  = urllib.request.Request(url, json.dumps(body).encode(), {"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.loads(r.read())["candidates"][0]["content"]["parts"][0]["text"]
+```
 
 ---
 
