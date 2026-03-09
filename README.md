@@ -20,6 +20,7 @@ Each agent is a focused expert spawned by CLU to handle a specific domain. They 
 | [n8n-builder](./agents/n8n-builder/) | Designs and deploys n8n automation workflows | ✅ Active |
 | [security-auditor](./agents/security-auditor/) | Security scanning — secrets, ports, CVEs, Docker | ✅ Active |
 | [test-agent](./agents/test-agent/) | Writes unit, integration, and E2E tests | ✅ Active |
+| [goo](./agents/goo/) | Google Intelligence — Workspace, Gemini AI, GCP, daily research | ✅ Active |
 
 ## Architecture
 
