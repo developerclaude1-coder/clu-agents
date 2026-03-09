@@ -47,6 +47,10 @@
     "test-agent": {
       "description": "Writes unit, integration, and E2E tests. Tracks coverage and sets up CI pipelines.",
       "prompt_file": "agents/test-agent/CLAUDE.md"
+    },
+    "goo": {
+      "description": "Google Intelligence Agent — one-stop shop for Google Workspace, Gemini AI, GCP, Firebase, and all Google APIs. Use for Drive/Docs improvements, Gemini setup, Google AI research, and anything Google ecosystem. Goo stays up-to-date on Google developments daily.",
+      "prompt_file": "agents/goo/CLAUDE.md"
     }
   }
 }
